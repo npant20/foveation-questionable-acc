@@ -1,5 +1,4 @@
 from __future__ import absolute_import
-from __future__ import division
 
 import numpy as np
 import sys
@@ -7,13 +6,19 @@ import abc
 abstractmethod = abc.abstractmethod
 import collections
 import logging
+from __future__ import division
 import numpy as np
 from collections import Iterable
+import logging
+import abc
 import warnings
+import logging
 import functools
+import sys
 import numbers
 from numbers import Number
 
+abstractmethod = abc.abstractmethod
 
 if sys.version_info >= (3, 4):
     ABC = abc.ABC
@@ -817,14 +822,8 @@ class KerasModel2Compat(DifferentiableModel):
         gradient = self._process_gradient(dpdx, gradient)
         assert gradient.shape == image.shape
         return gradient
-abstractmethod = abc.abstractmethod
 
-if sys.version_info >= (3, 4):
-    ABC = abc.ABC
-else:  # pragma: no cover
-    ABC = abc.ABCMeta('ABC', (), {})
-
-    
+     
 class Criterion(ABC):
     """Base class for criteria that define what is adversarial.
     The :class:`Criterion` class represents a criterion used to
@@ -889,6 +888,35 @@ class Misclassification(Criterion):
         top1 = np.argmax(predictions)
         return top1 != label
 
+class TopKMisclassification(Criterion):
+    """Defines adversarials as images for which the original class is
+    not one of the top k predicted classes.
+    For k = 1, the :class:`Misclassification` class provides a more
+    efficient implementation.
+    Parameters
+    ----------
+    k : int
+        Number of top predictions to which the reference label is
+        compared to.
+    See Also
+    --------
+    :class:`Misclassification` : Provides a more effcient implementation
+        for k = 1.
+    Notes
+    -----
+    Uses `numpy.argsort` to break ties.
+    """
+
+    def __init__(self, k):
+        super(TopKMisclassification, self).__init__()
+        self.k = k
+
+    def name(self):
+        return 'Top{}Misclassification'.format(self.k)
+
+    def is_adversarial(self, predictions, label):
+        topk = np.argsort(predictions)[-self.k:]
+        return label not in topk
 
 @functools.total_ordering
 class Distance(ABC):
@@ -1657,4 +1685,3 @@ class GradientSignAttack(SingleStepGradientBaseAttack):
 
 
 FGSM = GradientSignAttack
-
