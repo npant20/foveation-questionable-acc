@@ -41,7 +41,7 @@ for idx in range (1000):
   if adversarial is not None:
     advpredict = np.argmax(nofovmodel.predict(adversarial[np.newaxis, ...]))
     print('adverserial: ' + str(advpredict))
-    fovtop = top_predictor(adversarial, fovmodel)
+    fovtop = top_predictor(adversarial, fovmodel)         ###using the foveated model to evaluate predictions
     print(fovtop)
     if fovtop == realLabel:
       correct +=1
